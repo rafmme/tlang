@@ -16,8 +16,34 @@
       </div>
       <textarea name="codeEditor" id="code"></textarea>
     </div>
+    <script src="./js/wasm_exec.js"></script>
     <script src="./js/codemirror.min.js"></script>
     <script src="./js/javascript.min.js"></script>
     <script src="./js/main.js"></script>
+    <script src="./js/wasm_exec.js"></script>
+    <script>
+      const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+        lineNumbers: true,
+        mode: "javascript",
+        theme: "monokai",
+        tabSize: 2,
+      });
+
+      document.getElementById("run").onclick = (ev) => {
+        ev.preventDefault();
+
+        console.log("Code: ", editor.getValue());
+
+        const go = new Go();
+        WebAssembly.instantiateStreaming(
+          fetch("main.wasm"),
+          go.importObject
+        ).then((result) => {
+          go.run(result.instance);
+          console.log("WASM loaded and running");
+          console.log("executeTlang", executeTlang(editor.getValue()));
+        });
+      };
+    </script>
   </body>
 </html>

@@ -1,22 +1,35 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"os/user"
+	"syscall/js"
 
-	"github.com/rafmme/tlang/repl"
+	"github.com/rafmme/tlang/editor"
 )
 
 func main() {
-	user, err := user.Current()
+	executeTlang := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		if len(args) < 1 {
+			return "No arguments passed in!"
+		}
 
-	if err != nil {
-		panic(err)
-	}
+		code := args[0].String()
 
-	fmt.Print(repl.TLANG_TEXT_LOGO)
-	fmt.Printf("\nHallo %s! This is the TLang Programming Language!\n", user.Username)
-	fmt.Print("Feel free to type in commands\n")
-	repl.Start(os.Stdin, os.Stdout)
+		return editor.ParseEditorInput(code)
+	})
+
+	js.Global().Set("executeTlang", executeTlang)
+
+	select {}
+
+	/* 	user, err := user.Current()
+
+	   	if err != nil {
+	   		panic(err)
+	   	}
+
+	   	fmt.Print(repl.TLANG_TEXT_LOGO)
+	   	fmt.Printf("\nHallo %s! This is the TLang Programming Language!\n", user.Username)
+	   	fmt.Print("Feel free to type in commands\n")
+	   	repl.Start(os.Stdin, os.Stdout) */
+
 }
