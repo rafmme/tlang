@@ -1,0 +1,40 @@
+.action {
+  margin-bottom: 5px;
+}
+
+#run {
+  width: 80px;
+  height: 25px;
+  color: white;
+  background-color: green;
+  border: 1px solid black;
+}
+
+#clear {
+  width: 80px;
+  height: 25px;
+  color: white;
+  background-color: red;
+  border: 1px solid black;
+}
+
+.container {
+  display: flex;
+  height: 600px;
+}
+
+.editor-container {
+  flex: 1;
+  overflow: auto;
+}
+
+.output-container {
+  flex: 1;
+  overflow: auto;
+  border-left: 1px solid #ccc;
+  padding: 10px;
+}
+
+#output {
+  white-space: pre-wrap;
+}
