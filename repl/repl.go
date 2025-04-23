@@ -7,6 +7,7 @@ import (
 
 	"github.com/rafmme/tlang/evaluator"
 	"github.com/rafmme/tlang/lexer"
+	"github.com/rafmme/tlang/object"
 	"github.com/rafmme/tlang/parser"
 )
 
@@ -21,6 +22,8 @@ const PROMPT = "\nTLang:> "
 
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
+	env := object.NewEnvironment()
+
 	for {
 		fmt.Fprintf(out, PROMPT)
 		scanned := scanner.Scan()
@@ -39,7 +42,7 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		evaluated := evaluator.Eval(program)
+		evaluated := evaluator.Eval(program, env)
 
 		if evaluated != nil {
 			io.WriteString(out, evaluated.Inspect())
