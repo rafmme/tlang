@@ -219,11 +219,13 @@ func evalInfixExpression(operator string, left, right object.Object) object.Obje
 	case operator == "!=":
 		return nativeBoolToBooleanObject(left != right)
 
+	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ,
+		left.Type() == object.INTEGER_OBJ && right.Type() == object.STRING_OBJ,
+		right.Type() == object.INTEGER_OBJ && left.Type() == object.STRING_OBJ:
+		return evalStringInfixExpression(operator, left, right)
+
 	case left.Type() != right.Type():
 		return newError("type mismatch: %s %s %s", left.Type(), operator, right.Type())
-
-	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
-		return evalStringInfixExpression(operator, left, right)
 
 	default:
 		return newError("unknown operator: %s %s %s",
@@ -231,15 +233,73 @@ func evalInfixExpression(operator string, left, right object.Object) object.Obje
 	}
 }
 
+func repeatString(text string, count int64) string {
+	repeatedText := ""
+
+	for i := 0; i < int(count); i++ {
+		repeatedText += text
+	}
+
+	return repeatedText
+}
+
 func evalStringInfixExpression(operator string, left, right object.Object) object.Object {
-	if operator != "+" {
+	switch operator {
+	case "+":
+		if left.Type() == object.INTEGER_OBJ {
+			leftVal := left.(*object.Integer).Value
+			rightVal := right.(*object.String).Value
+
+			return &object.String{Value: string(leftVal) + rightVal}
+		} else if right.Type() == object.INTEGER_OBJ {
+			rightVal := right.(*object.Integer).Value
+			leftVal := left.(*object.String).Value
+
+			return &object.String{Value: leftVal + string(rightVal)}
+		} else {
+			leftVal := left.(*object.String).Value
+			rightVal := right.(*object.String).Value
+			return &object.String{Value: leftVal + rightVal}
+		}
+
+	case "*":
+		if left.Type() == object.INTEGER_OBJ {
+			leftVal := left.(*object.Integer).Value
+			rightVal := right.(*object.String).Value
+
+			return &object.String{Value: repeatString(rightVal, leftVal)}
+		} else if right.Type() == object.INTEGER_OBJ {
+			rightVal := right.(*object.Integer).Value
+			leftVal := left.(*object.String).Value
+
+			return &object.String{Value: repeatString(leftVal, rightVal)}
+		}
+
+	case "-":
+		if left.Type() == object.INTEGER_OBJ {
+			leftVal := left.(*object.Integer).Value
+			rightVal := right.(*object.String).Value
+
+			if len(rightVal) > int(leftVal) {
+				rightValSlice := rightVal[leftVal:]
+				return &object.String{Value: rightValSlice}
+			}
+
+		} else if right.Type() == object.INTEGER_OBJ {
+			rightVal := right.(*object.Integer).Value
+			leftVal := left.(*object.String).Value
+
+			if len(leftVal) > int(rightVal) {
+				leftValSlice := leftVal[:len(leftVal)-int(rightVal)]
+				return &object.String{Value: leftValSlice}
+			}
+		}
+
+	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
 
-	leftVal := left.(*object.String).Value
-	rightVal := right.(*object.String).Value
-
-	return &object.String{Value: leftVal + rightVal}
+	return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 }
 
 func evalIntegerInfixExpression(operator string, left, right object.Object) object.Object {
