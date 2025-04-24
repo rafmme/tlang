@@ -43,31 +43,31 @@ func TestNextToken(t *testing.T) {
 }
 
 func TestNextToken2(t *testing.T) {
-	input := `let five = 5;
-let ten = 10;
-   let add = fn(x, y) {
+	input := `make five = 5;
+make ten = 10;
+   make add = fxn(x, y) {
      x + y;
 };
-   let result = add(five, ten);
+   make result = add(five, ten);
    `
 	tests := []struct {
 		expectedType    token.TokenType
 		expectedLiteral string
 	}{
-		{token.LET, "let"},
+		{token.MAKE, "make"},
 		{token.IDENT, "five"},
 		{token.ASSIGN, "="},
 		{token.INT, "5"},
 		{token.SEMICOLON, ";"},
-		{token.LET, "let"},
+		{token.MAKE, "make"},
 		{token.IDENT, "ten"},
 		{token.ASSIGN, "="},
 		{token.INT, "10"},
 		{token.SEMICOLON, ";"},
-		{token.LET, "let"},
+		{token.MAKE, "make"},
 		{token.IDENT, "add"},
 		{token.ASSIGN, "="},
-		{token.FUNCTION, "fn"},
+		{token.FUNCTION, "fxn"},
 		{token.LPAREN, "("},
 		{token.IDENT, "x"},
 		{token.COMMA, ","},
@@ -80,7 +80,7 @@ let ten = 10;
 		{token.SEMICOLON, ";"},
 		{token.RBRACE, "}"},
 		{token.SEMICOLON, ";"},
-		{token.LET, "let"},
+		{token.MAKE, "make"},
 		{token.IDENT, "result"},
 		{token.ASSIGN, "="},
 		{token.IDENT, "add"},
