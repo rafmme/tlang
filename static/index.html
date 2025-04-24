@@ -13,6 +13,7 @@
     <div>
       <div class="action">
         <button id="run">Execute Code</button>
+        <button id="clear">Clear The Editor</button>
       </div>
       <div class="container">
         <div class="editor-container">
@@ -20,6 +21,7 @@
         </div>
         <div class="output-container">
           <h4>TLang Code Output Below:</h4>
+          <h4>--------- | | | | | |_______</h4>
           <div id="output"></div>
         </div>
       </div>
@@ -28,6 +30,7 @@
     <script src="./js/wasm_exec.js"></script>
     <script>
       const runButton = document.getElementById("run");
+      const clearButton = document.getElementById("clear");
 
       CodeMirror.defineMode("tlang", function (config, parserConfig) {
         return {
@@ -69,15 +72,15 @@
 
       editor.setValue(
         `make myName = ["Timileyin", \`Emmanuel\`, 'Farayola'];
-        \ndisplay(count(myName))
-        \ndisplay(push(myName, "Lekan"))
-        \nmake mapOfName = {"sn": myName[2], "fn": myName[0], "mn": myName[1]}
-        \ndisplay("Hello! " * 3);
-        \ndisplay("Hello! " + "3");
-        \nmake myAge = 20\n\ndisplay(myAge > 17)\n\ndisplay(myAge == 56)
-        \ndisplay(!true)
-        \nif (myAge > 17) {\n  display("I am an adult");\n} else {\n    display("I am a minor");\n}
-        \nmake joinMyName = fxn(firstName, middleName, surname){
+              \ndisplay(count(myName))
+              \ndisplay(push(myName, "Lekan"))
+              \nmake mapOfName = {"sn": myName[2], "fn": myName[0], "mn": myName[1]}
+              \ndisplay("Hello! " * 3);
+              \ndisplay("Hello! " + "3");
+              \nmake myAge = 20\n\ndisplay(myAge > 17)\n\ndisplay(myAge == 56)
+              \ndisplay(!true)
+              \nif (myAge > 17) {\n  display("I am an adult");\n} else {\n    display("I am a minor");\n}
+              \nmake joinMyName = fxn(firstName, middleName, surname){
   return surname + " " + firstName + " " + middleName + ".";
 }\n
 make greetingsFromMe = fxn(){
@@ -92,8 +95,18 @@ make greetingsFromMe = fxn(){
 }
 
 display(greetingsFromMe())
-`
+      `
       );
+
+      clearButton.onclick = (ev) => {
+        ev.preventDefault();
+        clearButton.innerText = "Clearing the Editor!!!";
+
+        setTimeout(() => {
+          clearButton.innerText = "Clear the Editor";
+          editor.setValue("");
+        }, 500);
+      };
 
       editor.on("change", function (cm, change) {
         const go = new Go();
@@ -105,7 +118,6 @@ display(greetingsFromMe())
           go.run(result.instance);
           const tlangParseResult = parseTlang(cm.getValue());
 
-          document.getElementById("output").innerText = "";
           document.getElementById("output").innerText = tlangParseResult;
         });
       });
@@ -113,6 +125,7 @@ display(greetingsFromMe())
       runButton.onclick = (ev) => {
         ev.preventDefault();
         runButton.innerText = "Executing the code!!!";
+        globalThis.fs.logput = [];
 
         const go = new Go();
         WebAssembly.instantiateStreaming(
@@ -121,10 +134,14 @@ display(greetingsFromMe())
         ).then((result) => {
           go.run(result.instance);
           runButton.innerHTML = "Execute Code";
+          executeTlang(editor.getValue());
 
-          const executedTLangCodeResult = executeTlang(editor.getValue());
-          document.getElementById("output").innerText = "";
-          document.getElementById("output").innerText = executedTLangCodeResult;
+          let displayText = "";
+          globalThis.fs.logput.forEach((item, index) => {
+            displayText += `Display Output ${index + 1}: ${item}\n\n`;
+          });
+
+          document.getElementById("output").innerText = displayText;
         });
       };
     </script>

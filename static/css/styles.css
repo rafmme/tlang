@@ -10,6 +10,14 @@
   border: 1px solid black;
 }
 
+#clear {
+  width: 200px;
+  height: 25px;
+  color: white;
+  background-color: red;
+  border: 1px solid black;
+}
+
 .container {
   display: flex;
   height: 740px;
