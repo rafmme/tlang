@@ -12,23 +12,121 @@
   <body>
     <div>
       <div class="action">
-        <button id="run">Run</button>
-        <button id="clear">Clear</button>
+        <button id="run">Execute Code</button>
       </div>
       <div class="container">
         <div class="editor-container">
           <textarea name="codeEditor" id="code"></textarea>
         </div>
         <div class="output-container">
-          <h4>Output here:</h4>
-          <div id="output">***</div>
+          <h4>TLang Code Output Below:</h4>
+          <div id="output"></div>
         </div>
-      </div>
-      <div>
-        <h4 id="errMsg">TLang Code Error:</h4>
       </div>
     </div>
     <script src="./js/codemirror.min.js"></script>
-    <script src="./js/main.js"></script>
+    <script src="./js/wasm_exec.js"></script>
+    <script>
+      const runButton = document.getElementById("run");
+
+      CodeMirror.defineMode("tlang", function (config, parserConfig) {
+        return {
+          token: function (stream, state) {
+            if (
+              stream.match(
+                /\b(if|else|fxn|true|false|return|display|make|push|count|first|last|rest|null)\b/
+              )
+            ) {
+              return "keyword";
+            }
+
+            if (stream.match(/"[^"]*"/)) {
+              return "string";
+            }
+
+            if (stream.match(/'[^']*'/)) {
+              return "string";
+            }
+
+            if (stream.match(/`[^`]*`/)) {
+              return "string";
+            }
+
+            stream.next();
+            return null;
+          },
+        };
+      });
+
+      CodeMirror.defineMIME("text/tlang", "tlang");
+
+      const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+        lineNumbers: true,
+        mode: "text/tlang",
+        theme: "monokai",
+        tabSize: 2,
+      });
+
+      editor.setValue(
+        `make myName = ["Timileyin", \`Emmanuel\`, 'Farayola'];
+        \ndisplay(count(myName))
+        \ndisplay(push(myName, "Lekan"))
+        \nmake mapOfName = {"sn": myName[2], "fn": myName[0], "mn": myName[1]}
+        \ndisplay("Hello! " * 3);
+        \ndisplay("Hello! " + "3");
+        \nmake myAge = 20\n\ndisplay(myAge > 17)\n\ndisplay(myAge == 56)
+        \ndisplay(!true)
+        \nif (myAge > 17) {\n  display("I am an adult");\n} else {\n    display("I am a minor");\n}
+        \nmake joinMyName = fxn(firstName, middleName, surname){
+  return surname + " " + firstName + " " + middleName + ".";
+}\n
+make greetingsFromMe = fxn(){
+  make greetings_one = "Hi there 🖐🏾!, I am "
+    + joinMyName(mapOfName["fn"], mapOfName["mn"], mapOfName["sn"])
+  make greetings_two = greetings_one
+    + " Welcome to TLang: (Timmy,s Interpreted Programming Language)."
+  make greetings_three = greetings_two
+    + " Feel free to code/interact with TLang on this editor. More features to be added soon. WIP.";
+
+  return greetings_three;
+}
+
+display(greetingsFromMe())
+`
+      );
+
+      editor.on("change", function (cm, change) {
+        const go = new Go();
+
+        WebAssembly.instantiateStreaming(
+          fetch("main.wasm"),
+          go.importObject
+        ).then((result) => {
+          go.run(result.instance);
+          const tlangParseResult = parseTlang(cm.getValue());
+
+          document.getElementById("output").innerText = "";
+          document.getElementById("output").innerText = tlangParseResult;
+        });
+      });
+
+      runButton.onclick = (ev) => {
+        ev.preventDefault();
+        runButton.innerText = "Executing the code!!!";
+
+        const go = new Go();
+        WebAssembly.instantiateStreaming(
+          fetch("main.wasm"),
+          go.importObject
+        ).then((result) => {
+          go.run(result.instance);
+          runButton.innerHTML = "Execute Code";
+
+          const executedTLangCodeResult = executeTlang(editor.getValue());
+          document.getElementById("output").innerText = "";
+          document.getElementById("output").innerText = executedTLangCodeResult;
+        });
+      };
+    </script>
   </body>
 </html>

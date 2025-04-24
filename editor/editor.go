@@ -24,13 +24,13 @@ func ParseEditorInput(code string) string {
 	l := lexer.New(code)
 	p := parser.New(l)
 
-	program := p.ParseProgram()
+	p.ParseProgram()
 
 	if len(p.Errors()) != 0 {
 		return workOnCodeEditorParserErrors(p.Errors())
 	}
 
-	return program.String()
+	return "No Error!"
 }
 
 func EvaluateEditorInput(code string, env *object.Environment) string {
@@ -49,5 +49,5 @@ func EvaluateEditorInput(code string, env *object.Environment) string {
 		return evaluated.Inspect() + "\n"
 	}
 
-	return "No code was executed!"
+	return "No output given!"
 }
